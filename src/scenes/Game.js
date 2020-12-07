@@ -90,7 +90,7 @@ export default class Game extends Phaser.Scene {
             this.player.setVelocityY(-300)
             this.player.setTexture('bunny-jump')
 
-            this.sound.play('jump')
+            //this.sound.play('jump')
         }
 
         const vy = this.player.body.velocity.y
