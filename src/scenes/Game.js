@@ -23,11 +23,13 @@ export default class Game extends Phaser.Scene {
         this.load.image('bunny-jump', 'assets/bunny1_jump.png')
         this.load.image('carrot', 'assets/carrot.png')
         this.load.audio('jump', 'assets/sfx/phaseJump1.ogg')
+        this.load.image('bug', 'assets/bug1.png')
         this.cursors = this.input.keyboard.createCursorKeys()
     }
 
     create(){
         this.add.image(240, 320, 'background').setScrollFactor(1,0)
+        this.add.image(240, -400, 'bug')
         this.platforms  = this.physics.add.staticGroup()
         this.carrots = this.physics.add.group({
             classType: Carrot
@@ -36,7 +38,7 @@ export default class Game extends Phaser.Scene {
         this.physics.add.collider(this.platforms, this.carrots)
 
         for (let i = 0; i < 5; ++i) {
-            const x = Phaser.Math.Between(80, 400)
+            const x = Phaser.Math.Between(150, 280)
             const y = 150 * i
 
             const platform = this.platforms.create(x, y, 'platform')
@@ -46,13 +48,17 @@ export default class Game extends Phaser.Scene {
             body.updateFromGameObject()
         }
 
+        // this.bugs = this.physics.add.group({
+        //     classType: Bug
+        // })
+
         this.player = this.physics.add.sprite(240, 320, 'bunny-stand').setScale(0.5)
         this.player.body.checkCollision.up = false
         this.player.body.checkCollision.left = false
         this.player.body.checkCollision.right = false
 
         this.cameras.main.startFollow(this.player)
-        //this.cameras.main.setDeadzone(this.scale.width * 1.5)
+        this.cameras.main.setDeadzone(this.scale.width * 1.5)
 
         this.physics.add.collider(this.platforms, this.player)
         this.physics.add.collider(this.platforms, this.carrots)
@@ -64,6 +70,14 @@ export default class Game extends Phaser.Scene {
             undefined,
             this
         )
+
+        // this.physics.add.overlap(
+        //     this.player,
+        //     this.bugs,
+        //     this.handleKillBug,
+        //     undefined,
+        //     this
+        // )
         //const carrot = new Carrot(this, 240, 320, 'carrot')
         //this.add.existing(carrot)
         const style = { color:'#000', fontsize: 24 }
@@ -87,7 +101,7 @@ export default class Game extends Phaser.Scene {
         const touchingDown = this.player.body.touching.down
 
         if (touchingDown) {
-            this.player.setVelocityY(-300)
+            this.player.setVelocityY(-200)
             this.player.setTexture('bunny-jump')
 
             //this.sound.play('jump')
@@ -104,6 +118,10 @@ export default class Game extends Phaser.Scene {
         else if (this.cursors.right.isDown && !touchingDown)
         {
             this.player.setVelocityX(200)
+        }
+        else if (this.cursors.up.isDown && !touchingDown && this.carrotsCollected > 5){
+            this.player.setVelocityY(-100)
+            this.carrotsCollected -= 5
         }
         else {
             this.player.setVelocityX(0)
@@ -153,6 +171,11 @@ export default class Game extends Phaser.Scene {
 
         const value = 'Carrots: ' + this.carrotsCollected
         this.carrotsCollectedText.text = value
+    }
+
+    handleKillBug(player, bug) {
+        this.bugs.killAndHide(bug)
+        this.physics.world.disableBody(bug.body)
     }
 
     findBottomMostPlatform() {
